@@ -1,0 +1,56 @@
+{
+  "name": "s5client-nodejs",
+  "version": "0.5.0-beta2-decryption",
+  "description": "S5 client for Decentralized content-addressed storage network S5",
+  "repository": "https://github.com/parajbs-dev/s5client-nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo hallo",
+    "format": "prettier --write .",
+    "lint": "yarn lint:eslint",
+    "lint:eslint": "eslint . --max-warnings 0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{json,yml,md}": [
+      "prettier --write"
+    ]
+  },
+  "keywords": [
+    "Decentralised",
+    "Content-Addressed",
+    "Cloud Storage",
+    "S5"
+  ],
+  "author": "parajbs-dev",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@napi-rs/blake-hash": "^1.3.2",
+    "axios": "0.27.2",
+    "cli-progress": "^3.11.2",
+    "form-data": "4.0.0",
+    "libsodium-wrappers": "^0.7.11",
+    "mime": "^3.0.0",
+    "s5-encryptWasm-nodejs": "https://github.com/parajbs-dev/s5-encryptWasm-nodejs.git#main",
+    "s5-utils-nodejs": "https://github.com/parajbs-dev/s5-utils-nodejs.git#test_5",
+    "readable-stream": "^4.4.2",
+    "readable-stream-clone": "^0.0.7",
+    "tus-js-client": "^3.1.0",
+    "tweetnacl": "^1.0.3",
+    "url-join": "^4.0.1"
+  },
+  "devDependencies": {
+    "axios-mock-adapter": "^1.20.0",
+    "axios-retry": "^3.2.5",
+    "eslint": "^8.0.0",
+    "lint-staged": "^13.0.0",
+    "prettier": "^2.0.5",
+    "tmp": "0.2.1"
+  }
+}
