@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S5Client Example</title>
+    <script src="/dist/s5client.js"></script>
+    <script src="/config.js"></script>
+    <script>
+      const PORTAL_STREAM_URL =
+        window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/s5/blob";
+
+      const S5Client = s5client.S5Client;
+
+      const headers = {};
+      const customClientOptions = {
+        portalUrl: PORTAL_URL,
+        authToken: PORTAL_AUTH_TOKEN,
+        headers,
+        withCredentials: false,
+      };
+
+      // Instantiate the S5Client
+      const client = new S5Client(PORTAL_URL, customClientOptions);
+
+      let uploadedFileCID = null;
+      let uploadedEncryptFileCID = null;
+
+      async function handleFileUpload(event) {
+        let downloadButton = document.getElementById("download-button");
+        let downloadButtonVideo = document.getElementById("downloadVideo-button");
+        const file = event.target.files[0];
+        if (!file) {
+          console.error("No file selected");
+          return;
+        }
+
+        try {
+          // Upload the file
+          const customOptions = { encrypt: false };
+          console.log("handleFileUpload: start");
+
+          const { cid } = await client.uploadFile(file, customOptions);
+
+          if (cid != null) {
+            downloadButton.disabled = false;
+            downloadButtonVideo.disabled = false;
+          }
+
+          // Log the CID and store it
+          console.log("Uploaded file CID:", cid);
+          uploadedFileCID = cid;
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownload() {
+        if (!uploadedFileCID) {
+          console.error("No file has been uploaded yet");
+          return;
+        }
+
+        try {
+          const inputElementFilenameValue = document.getElementById("filename-input").value;
+          const customOptions = { customFilename: inputElementFilenameValue };
+          const customOptions2 = { customFilename: uploadedFileCID };
+
+          // Download the file
+          if (inputElementFilenameValue.length > 0) {
+            await client.downloadFile(uploadedFileCID, customOptions);
+          } else {
+            await client.downloadFile(uploadedFileCID);
+          }  
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleVideoDownload() {
+        if (!uploadedFileCID) {
+          console.error("No file has been uploaded yet");
+          return;
+        }
+
+        try {
+          // Download the file
+          const videoUrl =  PORTAL_STREAM_URL + "/" + uploadedFileCID + "?mediaType=video%2Fmp4";
+
+          window.location.assign(videoUrl);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileUploadEncrypt(event) {
+        let downloadButtonEncrypt = document.getElementById("encrypt-button");
+        let downloadButtonVideoEncrypt = document.getElementById("encryptVideo-button");
+        let downloadButtonEncryptCID = document.getElementById("encryptCID-button");
+        const file = event.target.files[0];
+        if (!file) {
+          console.error("No file selected");
+          return;
+        }
+
+        try {
+          // Upload the file
+          const customOptions = { encrypt: true };
+          console.log("handleFileUpload: start");
+
+          const { cid, key, cidWithoutKey } = await client.uploadFile(file, customOptions);
+
+          console.log("key:  ", key);
+          console.log("cidWithoutKey:  ", cidWithoutKey);
+
+          if (cid != null) {
+            downloadButtonEncrypt.disabled = false;
+            downloadButtonVideoEncrypt.disabled = false;
+          }
+
+          // Log the CID and store it
+          console.log("Uploaded file CID:", cid);
+          uploadedEncryptFileCID = cid;
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownloadEncrypt() {
+
+        if (!uploadedEncryptFileCID) {
+          console.error("No file has been uploaded yet");
+          return;
+        }
+
+        try {
+          const inputElementDecryptFilenameValue = document.getElementById("decryptFilename-input").value;
+          const customOptions = { customFilename: inputElementDecryptFilenameValue, decrypt: true };
+          const customOptions2 = { customFilename: uploadedEncryptFileCID, decrypt: true };
+
+          // Download the file
+          if (inputElementDecryptFilenameValue.length > 0) {
+            await client.downloadFile(uploadedEncryptFileCID, customOptions);
+          } else {
+            await client.downloadFile(uploadedEncryptFileCID, customOptions2);
+          }  
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleVideoDownloadEncrypt() {
+        if (!uploadedEncryptFileCID) {
+          console.error("No file has been uploaded yet");
+          return;
+        }
+
+        try {
+          // Download the file
+          const videoUrl =  PORTAL_STREAM_URL + "/" + uploadedEncryptFileCID + "?mediaType=video%2Fmp4";
+
+          window.location.assign(videoUrl);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownloadEncryptCID() {
+        let downloadEncryptCIDinput = document.getElementById("encryptCID-input").value;
+
+        if (!downloadEncryptCIDinput) {
+          console.error("No CID to download");
+          return;
+        }
+
+        try {
+          // Download the file
+          const inputElementDecryptFilenameCIDValue = document.getElementById("decryptFilenameCID-input").value;
+          const customOptions = { customFilename: inputElementDecryptFilenameCIDValue, decrypt: true };
+          const customOptions2 = { customFilename: downloadEncryptCIDinput, decrypt: true };
+
+          // Download the file
+          if (inputElementDecryptFilenameCIDValue.length > 0) {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          } else {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownloadEncryptCIDVideoStream() {
+        let downloadEncryptCIDinput = document.getElementById("encryptCID-input").value;
+
+        if (!downloadEncryptCIDinput) {
+          console.error("No CID to download");
+          return;
+        }
+
+        try {
+          // Download the file
+          const inputElementDecryptFilenameCIDValue = document.getElementById("decryptFilenameCID-input").value;
+          const customOptions = { customFilename: inputElementDecryptFilenameCIDValue, videoStream: true, decrypt: true };
+          const customOptions2 = { customFilename: downloadEncryptCIDinput, videoStream: true, decrypt: true };
+
+          // Download the file
+          if (inputElementDecryptFilenameCIDValue.length > 0) {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          } else {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownloadEncryptCIDVideoStreamTab() {
+        let downloadEncryptCIDinput = document.getElementById("encryptCID-input").value;
+
+        if (!downloadEncryptCIDinput) {
+          console.error("No CID to download");
+          return;
+        }
+
+        try {
+          // Download the file
+          const inputElementDecryptFilenameCIDValue = document.getElementById("decryptFilenameCID-input").value;
+          const customOptions = { customFilename: inputElementDecryptFilenameCIDValue, videoStreamTab: true, decrypt: true };
+          const customOptions2 = { customFilename: downloadEncryptCIDinput, videoStreamTab: true, decrypt: true };
+
+          // Download the file
+          if (inputElementDecryptFilenameCIDValue.length > 0) {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          } else {
+            await client.downloadFile(downloadEncryptCIDinput, customOptions);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleFileDownloadEncryptCIDVideo() {
+        let downloadEncryptCIDinput = document.getElementById("encryptCID-input").value;
+
+        if (!downloadEncryptCIDinput) {
+          console.error("No CID to download");
+          return;
+        }
+
+        try {
+          // Download the file
+          const videoUrl =  PORTAL_STREAM_URL + "/" + downloadEncryptCIDinput + "?mediaType=video%2Fmp4";
+
+          window.location.assign(videoUrl);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      async function handleDisableFileDownloadEncryptCIDbutton() {
+        const downloadButtonEncryptCID = document.getElementById("encryptCID-button");
+        const downloadButtonEncryptCIDVideoStream = document.getElementById("encryptCIDVideoStream-button");
+        const downloadButtonEncryptCIDVideoStreamTab = document.getElementById("encryptCIDVideoStreamTab-button");
+        const downloadButtonEncryptCIDVideo = document.getElementById("encryptCIDVideo-button");
+        const inputElementEncryptCIDValue = document.getElementById("encryptCID-input").value;
+
+        if (inputElementEncryptCIDValue.length > 0) {
+          downloadButtonEncryptCID.disabled = false;
+          downloadButtonEncryptCIDVideoStream.disabled = false;
+          downloadButtonEncryptCIDVideoStreamTab.disabled = false;
+          downloadButtonEncryptCIDVideo.disabled = false;
+        } else {
+          downloadButtonEncryptCID.disabled = true;
+          downloadButtonEncryptCIDVideoStream.disabled = true;
+          downloadButtonEncryptCIDVideoStreamTab.disabled = true;
+          downloadButtonEncryptCIDVideo.disabled = true;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const inputElement = document.getElementById("file-input");
+        inputElement.addEventListener("change", handleFileUpload);
+
+        const downloadButton = document.getElementById("download-button");
+        downloadButton.disabled = true;
+        downloadButton.addEventListener("click", handleFileDownload);
+
+        const downloadButtonVideo = document.getElementById("downloadVideo-button");
+        downloadButtonVideo.disabled = true;
+        downloadButtonVideo.addEventListener("click", handleVideoDownload);
+
+        const inputElementEncrypt = document.getElementById("encrypt-input");
+        inputElementEncrypt.addEventListener("change", handleFileUploadEncrypt);
+
+        const downloadButtonEncrypt = document.getElementById("encrypt-button");
+        downloadButtonEncrypt.disabled = true;
+        downloadButtonEncrypt.addEventListener("click", handleFileDownloadEncrypt);
+
+        const downloadButtonVideoEncrypt = document.getElementById("encryptVideo-button");
+        downloadButtonVideoEncrypt.disabled = true;
+        downloadButtonVideoEncrypt.addEventListener("click", handleVideoDownloadEncrypt);
+
+        const inputElementEncryptCID = document.getElementById("encryptCID-input");
+        inputElementEncryptCID.addEventListener("change", handleDisableFileDownloadEncryptCIDbutton);
+
+        const downloadButtonEncryptCID = document.getElementById("encryptCID-button");
+        downloadButtonEncryptCID.disabled = true;
+        downloadButtonEncryptCID.addEventListener("click", handleFileDownloadEncryptCID);
+
+        const downloadButtonEncryptCIDVideoStream = document.getElementById("encryptCIDVideoStream-button");
+        downloadButtonEncryptCIDVideoStream.disabled = true;
+        downloadButtonEncryptCIDVideoStream.addEventListener("click", handleFileDownloadEncryptCIDVideoStream);
+
+        const downloadButtonEncryptCIDVideoStreamTab = document.getElementById("encryptCIDVideoStreamTab-button");
+        downloadButtonEncryptCIDVideoStreamTab.disabled = true;
+        downloadButtonEncryptCIDVideoStreamTab.addEventListener("click", handleFileDownloadEncryptCIDVideoStreamTab);
+
+        const downloadButtonEncryptCIDVideo = document.getElementById("encryptCIDVideo-button");
+        downloadButtonEncryptCIDVideo.disabled = true;
+        downloadButtonEncryptCIDVideo.addEventListener("click", handleFileDownloadEncryptCIDVideo);
+
+      });
+
+      function deleteCacheStorageOnClickButton() {
+        const button = document.getElementById('encryptCIDVideoCache-button'); // Replace 'your-button-id' with the actual ID of your button
+
+        if (button) {
+          button.addEventListener('click', async () => {
+            try {
+              const cacheNames = await caches.keys();
+              for (const cacheName of cacheNames) {
+                await caches.delete(cacheName);
+              }
+              console.log('Cache storage deleted successfully.');
+            } catch (error) {
+              console.error('Error deleting cache storage:', error);
+            }
+          });
+        } else {
+          console.error('Button not found.');
+        }
+      }
+
+      async function deleteCacheStorage() {
+        try {
+          const cacheNames = await caches.keys();
+          for (const cacheName of cacheNames) {
+            await caches.delete(cacheName);
+          }
+          console.log('Cache storage deleted successfully.');
+        } catch (error) {
+          console.error('Error deleting cache storage:', error);
+        }
+      }
+
+    </script>
+  </head>
+  <body>
+    <h1>S5Client Example</h1>
+    <input type="file" id="file-input" /><br /><br />
+    filename<br />
+    <input type="text" id="filename-input" />
+    <button id="download-button">Download</button>
+    <button id="downloadVideo-button">Video</button>
+    <br />
+    <h1>S5Client Encrypt Example</h1>
+    <input type="file" id="encrypt-input" /><br /><br />
+    decrypted filename<br />
+    <input type="text" id="decryptFilename-input" />
+    <button id="encrypt-button">Download</button>
+    <button id="encryptVideo-button">Video</button>
+    <br /><br />
+    <h1>S5Client Decrypt CID Example</h1>
+    encrypted CID<br />
+    <input type="text" id="encryptCID-input" /><br /><br />
+    decrypted filename<br />
+    <input type="text" id="decryptFilenameCID-input" />
+    <button id="encryptCID-button">Download CID</button>
+    <button id="encryptCIDVideoStream-button">VideoStream CID</button>
+    <button id="encryptCIDVideoStreamTab-button">VideoStreamTab CID</button>
+    <button id="encryptCIDVideo-button">Video</button>
+    <button id="encryptCIDVideoCache-button">clean</button>
+    <br />
+
+    <script>
+      // Call the function to set up the event listener
+      deleteCacheStorageOnClickButton();
+      deleteCacheStorage();
+    </script>
+  </body>
+
+  <script type="module">
+    // Installs service worker `sw.js` on this web page
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js").then(
+          function (registration) {
+            console.log("ServiceWorker registration successful with scope: ", registration.scope);
+          },
+          function (err) {
+            console.log("ServiceWorker registration failed: ", err);
+          }
+        );
+      });
+    }
+  </script>
+</html>
