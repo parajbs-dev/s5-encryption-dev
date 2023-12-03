@@ -2,7 +2,8 @@ import { Buffer } from "buffer";
 import { DEFAULT_DOWNLOAD_OPTIONS, DEFAULT_GET_METADATA_OPTIONS, DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS, DEFAULT_GET_DOWNLOAD_URLS_OPTIONS, } from "./defaults";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
-import { convertS5CidToMHashB64url, createVideoElementFromBlob, createVideoPageInNewTab, createDownloadFromBlob, checkOptsLocationsAPI, decryptFile, getEncryptedFileUrl, } from "s5-utils-js";
+import { convertS5CidToMHashB64url, createVideoElementFromBlob, createVideoPageInNewTab, createDownloadFromBlob, } from "s5-utils-js";
+import { checkOptsLocationsAPI, decryptFile, getEncryptedFileUrl, } from "s5-encryption-js";
 /**
  * Downloads in-memory data from a S5 cid.
  * @param this - S5Client
@@ -34,7 +35,6 @@ export async function downloadFile(cid, customOptions) {
         const opts = { ...DEFAULT_DOWNLOAD_OPTIONS, ...this.customOptions, ...customOptions, download: true };
         if (opts.decrypt) {
             const locationsHost = await checkOptsLocationsAPI(opts);
-            // Retrieve encrypted file URL and encryption metadata
             const durl = await getEncryptedFileUrl(cid, locationsHost);
             let decryptionKey;
             if (durl.encryptionMetadata) {
@@ -193,17 +193,13 @@ export async function getMetadata(cid, customOptions) {
  * @returns A Promise that resolves to the response data containing storage locations.
  */
 export async function getStorageLocations(cid, customOptions) {
-    // Merge default options, this.customOptions, and customOptions
     const opts = { ...DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS, ...this.customOptions, ...customOptions };
-    // Convert CID to mHashB64url
     const mHashB64url = convertS5CidToMHashB64url(cid);
-    // Execute GET request with merged options and mHashB64url as extraPath
     const response = await this.executeRequest({
         ...opts,
         method: "get",
         extraPath: mHashB64url,
     });
-    // Return the response data
     return response.data;
 }
 /**
@@ -214,14 +210,11 @@ export async function getStorageLocations(cid, customOptions) {
  * @returns A promise that resolves to the response containing the download URLs.
  */
 export async function getDownloadUrls(cid, customOptions) {
-    // Merge default options, instance custom options, and provided custom options
     const opts = { ...DEFAULT_GET_DOWNLOAD_URLS_OPTIONS, ...this.customOptions, ...customOptions };
-    // Execute the request to retrieve the download URLs
     const response = await this.executeRequest({
         ...opts,
         method: "get",
         extraPath: cid,
     });
-    // Return the response data
     return response.data;
 }

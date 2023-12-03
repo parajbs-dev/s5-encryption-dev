@@ -1,11 +1,12 @@
 const path = require("path");
-const { merge } = require("webpack-merge");
+//const { merge } = require("webpack-merge");
 
 module.exports = {
   entry: "./src/index.ts",
   mode: "production",
 
   module: {
+    noParse: [/gun\.js$/, /sea\.js$/],
     rules: [
       {
         test: /\.tsx?$/,
@@ -20,16 +21,14 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
     fallback: {
-      crypto: require.resolve("crypto-browserify"),
-      stream: require.resolve("stream-browserify"),
-      path: require.resolve("path-browserify"),
+      crypto: false,
+      stream: false,
+      path: false,
       fs: false
     },
   },
   performance: {
     hints: false,
-    maxEntrypointSize: 512000,
-    maxAssetSize: 512000
   },
   output: {
     path: path.resolve(__dirname, "./example/dist"),

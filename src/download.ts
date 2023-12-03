@@ -23,11 +23,14 @@ import {
   createVideoElementFromBlob,
   createVideoPageInNewTab,
   createDownloadFromBlob,
+} from "s5-utils-js";
+
+import {
   EncryptedFileUrlResponse,
   checkOptsLocationsAPI,
   decryptFile,
   getEncryptedFileUrl,
-} from "s5-utils-js";
+} from "s5-encryption-js";
 
 /**
  * Downloads in-memory data from a S5 cid.
@@ -72,10 +75,7 @@ export async function downloadFile(
 
     if (opts.decrypt) {
       const locationsHost = await checkOptsLocationsAPI(opts);
-
-      // Retrieve encrypted file URL and encryption metadata
       const durl: EncryptedFileUrlResponse = await getEncryptedFileUrl(cid, locationsHost);
-
 
       let decryptionKey;
       if (durl.encryptionMetadata) {
@@ -88,10 +88,7 @@ export async function downloadFile(
       }
 
       if (decryptionKey) {
-
-
         if (durl.encryptionMetadata) {
-
           if (opts.videoStream) {
             const decryptedBlob = await decryptFile(response, Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
             if (decryptedBlob) {
@@ -165,7 +162,6 @@ export async function downloadDirectory(
 
   try {
     const zipFile: JSZip = new JSZip();
-
     const saveZip = async function (name: string, url: string, filename: string) {
       if (!url) return;
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
@@ -216,7 +212,6 @@ export async function downloadDirectory(
  */
 export async function getCidUrl(this: S5Client, cid: string, customOptions?: CustomDownloadOptions): Promise<string> {
   const opts = { ...DEFAULT_DOWNLOAD_OPTIONS, ...this.customOptions, ...customOptions };
-
   const portalUrl = await this.portalUrl();
 
   const resolveUrl = portalUrl + opts.endpointDownload + cid + (opts.authToken ? `?auth_token=${opts.authToken}` : "");
@@ -260,20 +255,15 @@ export async function getStorageLocations(
   cid: string,
   customOptions?: CustomGetStorageLocationsOptions
 ): Promise<GetStorageLocationsResponse> {
-  // Merge default options, this.customOptions, and customOptions
   const opts = { ...DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS, ...this.customOptions, ...customOptions };
-
-  // Convert CID to mHashB64url
   const mHashB64url = convertS5CidToMHashB64url(cid);
 
-  // Execute GET request with merged options and mHashB64url as extraPath
   const response = await this.executeRequest({
     ...opts,
     method: "get",
     extraPath: mHashB64url,
   });
 
-  // Return the response data
   return response.data;
 }
 
@@ -289,16 +279,13 @@ export async function getDownloadUrls(
   cid: string,
   customOptions?: CustomGetDownloadUrlsOptions
 ): Promise<GetDownloadUrlsResponse> {
-  // Merge default options, instance custom options, and provided custom options
   const opts = { ...DEFAULT_GET_DOWNLOAD_URLS_OPTIONS, ...this.customOptions, ...customOptions };
 
-  // Execute the request to retrieve the download URLs
   const response = await this.executeRequest({
     ...opts,
     method: "get",
     extraPath: cid,
   });
 
-  // Return the response data
   return response.data;
 }

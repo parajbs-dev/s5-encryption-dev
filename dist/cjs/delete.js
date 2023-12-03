@@ -10,18 +10,14 @@ const defaults_1 = require("./defaults");
  * @returns A promise that resolves to a string indicating the result of the delete operation ("successful" or "failed").
  */
 async function deleteCid(cid, customOptions) {
-    // Merge default delete options with custom options
     const opts = { ...defaults_1.DEFAULT_DELETE_OPTIONS, ...this.customOptions, ...customOptions };
-    // Variable to store the response message
     let responseMessage;
     try {
-        // Execute the delete request
         const response = await this.executeRequest({
             ...opts,
             method: "delete",
             extraPath: cid,
         });
-        // Check the response status and set the response message accordingly
         if (response.status === 200) {
             responseMessage = "successful";
         }

@@ -9,6 +9,7 @@ const defaults_1 = require("./defaults");
 const file_saver_1 = require("file-saver");
 const jszip_1 = __importDefault(require("jszip"));
 const s5_utils_js_1 = require("s5-utils-js");
+const s5_encryption_js_1 = require("s5-encryption-js");
 /**
  * Downloads in-memory data from a S5 cid.
  * @param this - S5Client
@@ -40,9 +41,8 @@ async function downloadFile(cid, customOptions) {
     try {
         const opts = { ...defaults_1.DEFAULT_DOWNLOAD_OPTIONS, ...this.customOptions, ...customOptions, download: true };
         if (opts.decrypt) {
-            const locationsHost = await (0, s5_utils_js_1.checkOptsLocationsAPI)(opts);
-            // Retrieve encrypted file URL and encryption metadata
-            const durl = await (0, s5_utils_js_1.getEncryptedFileUrl)(cid, locationsHost);
+            const locationsHost = await (0, s5_encryption_js_1.checkOptsLocationsAPI)(opts);
+            const durl = await (0, s5_encryption_js_1.getEncryptedFileUrl)(cid, locationsHost);
             let decryptionKey;
             if (durl.encryptionMetadata) {
                 decryptionKey = new Uint8Array(durl.encryptionMetadata.key);
@@ -54,27 +54,27 @@ async function downloadFile(cid, customOptions) {
             if (decryptionKey) {
                 if (durl.encryptionMetadata) {
                     if (opts.videoStream) {
-                        const decryptedBlob = await (0, s5_utils_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
+                        const decryptedBlob = await (0, s5_encryption_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
                         if (decryptedBlob) {
                             (0, s5_utils_js_1.createVideoElementFromBlob)(decryptedBlob.blob);
                         }
                     }
                     else {
                         if (opts.videoStreamTab) {
-                            const decryptedBlob = await (0, s5_utils_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
+                            const decryptedBlob = await (0, s5_encryption_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
                             if (decryptedBlob) {
                                 (0, s5_utils_js_1.createVideoPageInNewTab)(decryptedBlob.blob);
                             }
                         }
                         else {
                             if (opts.customFilename) {
-                                const decryptedBlob = await (0, s5_utils_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), opts.customFilename, decryptionKey);
+                                const decryptedBlob = await (0, s5_encryption_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), opts.customFilename, decryptionKey);
                                 if (decryptedBlob) {
                                     (0, s5_utils_js_1.createDownloadFromBlob)(decryptedBlob.blob, opts.customFilename);
                                 }
                             }
                             else {
-                                const decryptedBlob = await (0, s5_utils_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
+                                const decryptedBlob = await (0, s5_encryption_js_1.decryptFile)(response, buffer_1.Buffer.from(durl.encryptionMetadata.hash), cid, decryptionKey);
                                 if (decryptedBlob) {
                                     (0, s5_utils_js_1.createDownloadFromBlob)(decryptedBlob.blob, cid);
                                 }
@@ -204,17 +204,13 @@ exports.getMetadata = getMetadata;
  * @returns A Promise that resolves to the response data containing storage locations.
  */
 async function getStorageLocations(cid, customOptions) {
-    // Merge default options, this.customOptions, and customOptions
     const opts = { ...defaults_1.DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS, ...this.customOptions, ...customOptions };
-    // Convert CID to mHashB64url
     const mHashB64url = (0, s5_utils_js_1.convertS5CidToMHashB64url)(cid);
-    // Execute GET request with merged options and mHashB64url as extraPath
     const response = await this.executeRequest({
         ...opts,
         method: "get",
         extraPath: mHashB64url,
     });
-    // Return the response data
     return response.data;
 }
 exports.getStorageLocations = getStorageLocations;
@@ -226,15 +222,12 @@ exports.getStorageLocations = getStorageLocations;
  * @returns A promise that resolves to the response containing the download URLs.
  */
 async function getDownloadUrls(cid, customOptions) {
-    // Merge default options, instance custom options, and provided custom options
     const opts = { ...defaults_1.DEFAULT_GET_DOWNLOAD_URLS_OPTIONS, ...this.customOptions, ...customOptions };
-    // Execute the request to retrieve the download URLs
     const response = await this.executeRequest({
         ...opts,
         method: "get",
         extraPath: cid,
     });
-    // Return the response data
     return response.data;
 }
 exports.getDownloadUrls = getDownloadUrls;

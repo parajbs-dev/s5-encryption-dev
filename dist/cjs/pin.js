@@ -10,18 +10,14 @@ const defaults_1 = require("./defaults");
  * @returns A Promise that resolves with a string indicating the result of the pinning operation ("successful" or "failed").
  */
 async function pinCid(cid, customOptions) {
-    // Merge default pin options, customOptions, and this.customOptions into opts
     const opts = { ...defaults_1.DEFAULT_PIN_OPTIONS, ...this.customOptions, ...customOptions };
-    // Variable to store the result of the pinning operation
     let responseMessage;
     try {
-        // Execute the pinning request asynchronously
         const response = await this.executeRequest({
             ...opts,
             method: "post",
             extraPath: cid,
         });
-        // Check the response status and set responseMessage accordingly
         if (response.status === 200) {
             responseMessage = "successful";
         }

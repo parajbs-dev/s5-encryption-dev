@@ -10,6 +10,7 @@ export const DEFAULT_BASE_OPTIONS = {
     customCookie: "",
     onDownloadProgress: undefined,
     onUploadProgress: undefined,
+    enableDelete: undefined,
     loginFn: undefined,
 };
 export const DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS = {
@@ -66,6 +67,7 @@ export const DEFAULT_UPLOAD_OPTIONS = {
     customDirname: "",
     errorPages: undefined,
     tryFiles: undefined,
+    encrypt: false,
     // Large files.
     largeFileSize: TUS_CHUNK_SIZE,
     retryDelays: DEFAULT_TUS_RETRY_DELAYS,
@@ -81,4 +83,55 @@ export const DEFAULT_DELETE_OPTIONS = {
 export const DEFAULT_PIN_OPTIONS = {
     ...DEFAULT_BASE_OPTIONS,
     endpointPin: "/s5/pin",
+};
+export const DEFAULT_GET_ENTRY_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    endpointGetEntry: "/s5/registry",
+    hashedDataKeyHex: false,
+};
+export const DEFAULT_SET_ENTRY_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    endpointSetEntry: "/s5/registry",
+    hashedDataKeyHex: false,
+    deleteForever: false,
+};
+/**
+ * The default options for get JSON. Includes the default get entry and download
+ * options.
+ */
+export const DEFAULT_GET_JSON_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    ...DEFAULT_GET_ENTRY_OPTIONS,
+    ...DEFAULT_DOWNLOAD_OPTIONS,
+    cachedDataLink: undefined,
+    dbCrypto: false,
+};
+/**
+ * The default options for set JSON. Includes the default upload, get JSON, and
+ * set entry options.
+ */
+export const DEFAULT_SET_JSON_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    ...DEFAULT_UPLOAD_OPTIONS,
+    ...DEFAULT_GET_JSON_OPTIONS,
+    ...DEFAULT_SET_ENTRY_OPTIONS,
+    dbCrypto: false,
+};
+/**
+ * The default options for set entry data. Includes the default get entry and
+ * set entry options.
+ */
+export const DEFAULT_SET_ENTRY_DATA_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    ...DEFAULT_GET_ENTRY_OPTIONS,
+    ...DEFAULT_SET_ENTRY_OPTIONS,
+    allowDeletionEntryData: false,
+};
+export const DELETION_ENTRY_DATA = new Uint8Array(0);
+export const MAX_REVISION = 281474976710655;
+export const MAX_REVISION_DELETE = 281474976710656;
+export const DEFAULT_INIT_OPTIONS = {
+    ...DEFAULT_BASE_OPTIONS,
+    ...DEFAULT_UPLOAD_OPTIONS,
+    ...DEFAULT_DELETE_OPTIONS,
 };

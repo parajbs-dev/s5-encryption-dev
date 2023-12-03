@@ -21,6 +21,7 @@ export type CustomClientOptions = {
     customCookie?: string;
     onDownloadProgress?: (progress: number, event: ProgressEvent) => void;
     onUploadProgress?: (progress: number, event: ProgressEvent) => void;
+    enableDelete?: boolean | undefined;
     loginFn?: (config?: RequestConfig) => Promise<void>;
 };
 /**
@@ -74,6 +75,7 @@ export declare const DEFAULT_BASE_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 /**
@@ -131,6 +133,7 @@ export declare const DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export type CustomGetDownloadUrlsOptions = BaseCustomOptions & {
@@ -155,6 +158,7 @@ export declare const DEFAULT_GET_DOWNLOAD_URLS_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export declare const DEFAULT_DOWNLOAD_OPTIONS: {
@@ -175,6 +179,7 @@ export declare const DEFAULT_DOWNLOAD_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export declare const DEFAULT_GET_METADATA_OPTIONS: {
@@ -187,6 +192,7 @@ export declare const DEFAULT_GET_METADATA_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 /**
@@ -260,6 +266,7 @@ export declare const DEFAULT_UPLOAD_OPTIONS: {
     customDirname: string;
     errorPages: undefined;
     tryFiles: undefined;
+    encrypt: boolean;
     largeFileSize: number;
     retryDelays: number[];
     portalUrl: string;
@@ -270,6 +277,7 @@ export declare const DEFAULT_UPLOAD_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export type CustomUploadFromUrlOptions = BaseCustomOptions & {
@@ -294,6 +302,7 @@ export declare const DEFAULT_UPLOAD_FROM_URL_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export type CustomDeleteOptions = BaseCustomOptions & {
@@ -309,6 +318,7 @@ export declare const DEFAULT_DELETE_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
 };
 export type CustomPinOptions = BaseCustomOptions & {
@@ -324,6 +334,223 @@ export declare const DEFAULT_PIN_OPTIONS: {
     customCookie: string;
     onDownloadProgress: undefined;
     onUploadProgress: undefined;
+    enableDelete: undefined;
     loginFn: undefined;
+};
+export declare const DEFAULT_GET_ENTRY_OPTIONS: {
+    endpointGetEntry: string;
+    hashedDataKeyHex: boolean;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+};
+export declare const DEFAULT_SET_ENTRY_OPTIONS: {
+    endpointSetEntry: string;
+    hashedDataKeyHex: boolean;
+    deleteForever: boolean;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+};
+/**
+ * Custom get entry options.
+ * @property [endpointGetEntry] - The relative URL path of the portal endpoint to contact.
+ * @property [hashedDataKeyHex] - Whether the data key is already hashed and in hex format. If not, we hash the data key.
+ */
+export type CustomGetEntryOptions = BaseCustomOptions & {
+    endpointGetEntry?: string;
+    hashedDataKeyHex?: boolean;
+};
+/**
+ * Custom set entry options.
+ * @property [endpointSetEntry] - The relative URL path of the portal endpoint to contact.
+ * @property [hashedDataKeyHex] - Whether the data key is already hashed and in hex format. If not, we hash the data key.
+ */
+export type CustomSetEntryOptions = BaseCustomOptions & {
+    endpointSetEntry?: string;
+    hashedDataKeyHex?: boolean;
+};
+export interface SignedRegistryEntry {
+    pk: Uint8Array;
+    revision: number;
+    data: Uint8Array;
+    signature: Uint8Array;
+}
+export interface SignedEntry {
+    pk: string;
+    revision: number;
+    data: string;
+    signature: string;
+}
+/**
+ * Custom get JSON options. Includes the options for get entry, to get the
+ * skylink; and download, to download the file from the skylink.
+ * @property [cachedDataLink] - The last known data link. If it hasn't changed, do not download the file contents again.
+ */
+export type CustomGetJSONOptions = CustomGetEntryOptions & CustomDownloadOptions & {
+    cachedDataLink?: string;
+};
+/**
+ * The default options for get JSON. Includes the default get entry and download
+ * options.
+ */
+export declare const DEFAULT_GET_JSON_OPTIONS: {
+    cachedDataLink: undefined;
+    dbCrypto: boolean;
+    endpointDownload: string;
+    customFilename: string;
+    decrypt: boolean;
+    download: boolean;
+    path: undefined;
+    range: undefined;
+    responseType: undefined;
+    videoStream: boolean;
+    videoStreamTab: boolean;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+    endpointGetEntry: string;
+    hashedDataKeyHex: boolean;
+};
+/**
+ * Custom set JSON options. Includes the options for upload, to get the file for
+ * the skylink; get JSON, to retrieve the revision; and set entry, to set the
+ * entry with the skylink and revision.
+ */
+export type CustomSetJSONOptions = CustomUploadOptions & CustomGetJSONOptions & CustomSetEntryOptions;
+/**
+ * The default options for set JSON. Includes the default upload, get JSON, and
+ * set entry options.
+ */
+export declare const DEFAULT_SET_JSON_OPTIONS: {
+    dbCrypto: boolean;
+    endpointSetEntry: string;
+    hashedDataKeyHex: boolean;
+    deleteForever: boolean;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+    cachedDataLink: undefined;
+    endpointDownload: string;
+    customFilename: string;
+    decrypt: boolean;
+    download: boolean;
+    path: undefined;
+    range: undefined;
+    responseType: undefined;
+    videoStream: boolean;
+    videoStreamTab: boolean;
+    endpointGetEntry: string;
+    endpointUpload: string;
+    endpointDirectoryUpload: string;
+    endpointLargeUpload: string;
+    customDirname: string;
+    errorPages: undefined;
+    tryFiles: undefined;
+    encrypt: boolean;
+    largeFileSize: number;
+    retryDelays: number[];
+};
+/**
+ * Custom set entry data options. Includes the options for get and set entry.
+ */
+export type CustomSetEntryDataOptions = CustomGetEntryOptions & CustomSetEntryOptions & {
+    allowDeletionEntryData: boolean;
+};
+/**
+ * The default options for set entry data. Includes the default get entry and
+ * set entry options.
+ */
+export declare const DEFAULT_SET_ENTRY_DATA_OPTIONS: {
+    allowDeletionEntryData: boolean;
+    endpointSetEntry: string;
+    hashedDataKeyHex: boolean;
+    deleteForever: boolean;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+    endpointGetEntry: string;
+};
+export declare const DELETION_ENTRY_DATA: Uint8Array;
+/**
+ * Represents a JSON response object.
+ */
+export type JSONResponse = {
+    data: string | object | Uint8Array | undefined;
+    cid: string | undefined;
+};
+/**
+ * Represents a JSON encrypted response object.
+ */
+export type JSONEncryptedResponse = {
+    data: string | undefined;
+    cid: string | undefined;
+    key: string | undefined;
+};
+/**
+ * EntryData object.
+ */
+export type EntryData = {
+    data: string | undefined;
+};
+export declare const MAX_REVISION = 281474976710655;
+export declare const MAX_REVISION_DELETE = 281474976710656;
+export declare const DEFAULT_INIT_OPTIONS: {
+    endpointDelete: string;
+    portalUrl: string;
+    APIKey: string;
+    s5ApiKey: string;
+    authToken: string;
+    customUserAgent: string;
+    customCookie: string;
+    onDownloadProgress: undefined;
+    onUploadProgress: undefined;
+    enableDelete: undefined;
+    loginFn: undefined;
+    endpointUpload: string;
+    endpointDirectoryUpload: string;
+    endpointLargeUpload: string;
+    customFilename: string;
+    customDirname: string;
+    errorPages: undefined;
+    tryFiles: undefined;
+    encrypt: boolean;
+    largeFileSize: number;
+    retryDelays: number[];
 };
 //# sourceMappingURL=defaults.d.ts.map

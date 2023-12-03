@@ -1,22 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError, AxiosProgressEvent } from "axios";
 import type { AxiosResponse } from "axios";
 
-import { CustomClientOptions, RequestConfig } from "./defaults";
+import { CustomClientOptions, RequestConfig, DEFAULT_INIT_OPTIONS } from "./defaults";
 import { buildRequestHeaders, buildRequestUrl, ExecuteRequestError } from "./request";
 
 import {
-  getAllInfosFromCid,
-  convertDownloadDirectoryInputCid,
-  convertB58btcToB32rfcCid,
-  convertS5CidToMHashB64url,
-  convertS5CidToB3hashHex,
   defaultPortalUrl,
-  addUrlSubdomain,
   ensureUrl,
+  generateRandomString,
 } from "s5-utils-js";
 
 import { deleteCid } from "./delete";
 import { pinCid } from "./pin";
+
+import {
+  getEntry,
+  getEntryUrl,
+  getEntryUrlForPortal,
+  setEntry,
+  signEntry,
+  resolverEntry,
+  createResolverEntry,
+  createSignedEntry,
+} from "./registry";
 
 import {
   downloadData,
@@ -63,6 +70,7 @@ axios.interceptors.response.use(
 export class S5Client {
   customOptions: CustomClientOptions;
 
+  protected enableDel?: boolean;
   // The initial portal URL, the value of `defaultPortalUrl()` if `new
   // S5Client` is called without a given portal. This initial URL is used to
   // resolve the final portal URL.
@@ -104,14 +112,16 @@ export class S5Client {
   getStorageLocations = getStorageLocations;
   getDownloadUrls = getDownloadUrls;
 
-  // Tools
-  tools = {
-    convertB58btcToB32rfcCid: convertB58btcToB32rfcCid.bind(this),
-    addUrlSubdomain: addUrlSubdomain.bind(this),
-    convertS5CidToMHashB64url: convertS5CidToMHashB64url.bind(this),
-    convertDownloadDirectoryInputCid: convertDownloadDirectoryInputCid.bind(this),
-    getAllInfosFromCid: getAllInfosFromCid.bind(this),
-    convertS5CidToB3hashHex: convertS5CidToB3hashHex.bind(this),
+  // registry
+  registry = {
+    getEntry: getEntry.bind(this),
+    getEntryUrl: getEntryUrl.bind(this),
+    getEntryUrlForPortal: getEntryUrlForPortal.bind(this),
+    setEntry: setEntry.bind(this),
+    signEntry: signEntry.bind(this),
+    resolverEntry: resolverEntry.bind(this),
+    createResolverEntry: createResolverEntry.bind(this),
+    createSignedEntry: createSignedEntry.bind(this),
   };
 
   /**
@@ -132,6 +142,32 @@ export class S5Client {
     }
     this.initialPortalUrl = initialPortalUrl;
     this.customOptions = customOptions;
+  }
+
+  /**
+   * Initializes the object asynchronously.
+   * @returns {Promise<void>} A Promise that resolves when the initialization is complete.
+   */
+  async init(): Promise<void> {
+    if (this.customOptions.enableDelete === undefined) {
+      this.customOptions.enableDelete = await this.checkEndpointDelete();
+    }
+  }
+
+  /**
+   * Checks the endpoint for deletion.
+   * @returns {Promise<boolean>} Returns true if successful, false otherwise.
+   */
+  async checkEndpointDelete(): Promise<boolean> {
+    try {
+      const { portalUrl, endpointUpload, endpointDelete, authToken } = { ...DEFAULT_INIT_OPTIONS, ...this.customOptions };
+      const uploadResponse: any = await axios.post(`${portalUrl}${endpointUpload}/${authToken ? `?auth_token=${authToken}` : ""}`, { data: generateRandomString(32) });
+      await axios.delete(`${portalUrl}${endpointDelete}/${uploadResponse.data.cid}${authToken ? `?auth_token=${authToken}` : ""}`);
+      return true;
+    } catch (error: any) {
+      console.log('Error:', error.response.data);
+      return false;
+    }
   }
 
   /* istanbul ignore next */

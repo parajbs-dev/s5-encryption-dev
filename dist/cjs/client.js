@@ -4,11 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.S5Client = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const axios_1 = __importDefault(require("axios"));
+const defaults_1 = require("./defaults");
 const request_1 = require("./request");
 const s5_utils_js_1 = require("s5-utils-js");
 const delete_1 = require("./delete");
 const pin_1 = require("./pin");
+const registry_1 = require("./registry");
 const download_1 = require("./download");
 const upload_1 = require("./upload");
 // Add a response interceptor so that we always return an error of type
@@ -58,14 +61,16 @@ class S5Client {
         this.getMetadata = download_1.getMetadata;
         this.getStorageLocations = download_1.getStorageLocations;
         this.getDownloadUrls = download_1.getDownloadUrls;
-        // Tools
-        this.tools = {
-            convertB58btcToB32rfcCid: s5_utils_js_1.convertB58btcToB32rfcCid.bind(this),
-            addUrlSubdomain: s5_utils_js_1.addUrlSubdomain.bind(this),
-            convertS5CidToMHashB64url: s5_utils_js_1.convertS5CidToMHashB64url.bind(this),
-            convertDownloadDirectoryInputCid: s5_utils_js_1.convertDownloadDirectoryInputCid.bind(this),
-            getAllInfosFromCid: s5_utils_js_1.getAllInfosFromCid.bind(this),
-            convertS5CidToB3hashHex: s5_utils_js_1.convertS5CidToB3hashHex.bind(this),
+        // registry
+        this.registry = {
+            getEntry: registry_1.getEntry.bind(this),
+            getEntryUrl: registry_1.getEntryUrl.bind(this),
+            getEntryUrlForPortal: registry_1.getEntryUrlForPortal.bind(this),
+            setEntry: registry_1.setEntry.bind(this),
+            signEntry: registry_1.signEntry.bind(this),
+            resolverEntry: registry_1.resolverEntry.bind(this),
+            createResolverEntry: registry_1.createResolverEntry.bind(this),
+            createSignedEntry: registry_1.createSignedEntry.bind(this),
         };
         if (initialPortalUrl === "") {
             // Portal was not given, use the default portal URL. We'll still make a request for the resolved portal URL.
@@ -79,6 +84,31 @@ class S5Client {
         }
         this.initialPortalUrl = initialPortalUrl;
         this.customOptions = customOptions;
+    }
+    /**
+     * Initializes the object asynchronously.
+     * @returns {Promise<void>} A Promise that resolves when the initialization is complete.
+     */
+    async init() {
+        if (this.customOptions.enableDelete === undefined) {
+            this.customOptions.enableDelete = await this.checkEndpointDelete();
+        }
+    }
+    /**
+     * Checks the endpoint for deletion.
+     * @returns {Promise<boolean>} Returns true if successful, false otherwise.
+     */
+    async checkEndpointDelete() {
+        try {
+            const { portalUrl, endpointUpload, endpointDelete, authToken } = { ...defaults_1.DEFAULT_INIT_OPTIONS, ...this.customOptions };
+            const uploadResponse = await axios_1.default.post(`${portalUrl}${endpointUpload}/${authToken ? `?auth_token=${authToken}` : ""}`, { data: (0, s5_utils_js_1.generateRandomString)(32) });
+            await axios_1.default.delete(`${portalUrl}${endpointDelete}/${uploadResponse.data.cid}${authToken ? `?auth_token=${authToken}` : ""}`);
+            return true;
+        }
+        catch (error) {
+            console.log('Error:', error.response.data);
+            return false;
+        }
     }
     /* istanbul ignore next */
     /**

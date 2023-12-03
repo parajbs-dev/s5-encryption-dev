@@ -23,6 +23,7 @@ export type CustomClientOptions = {
   customCookie?: string;
   onDownloadProgress?: (progress: number, event: ProgressEvent) => void;
   onUploadProgress?: (progress: number, event: ProgressEvent) => void;
+  enableDelete?: boolean | undefined;
   loginFn?: (config?: RequestConfig) => Promise<void>;
 };
 
@@ -77,6 +78,7 @@ export const DEFAULT_BASE_OPTIONS = {
   customCookie: "",
   onDownloadProgress: undefined,
   onUploadProgress: undefined,
+  enableDelete: undefined,
   loginFn: undefined,
 };
 
@@ -257,6 +259,8 @@ export const DEFAULT_UPLOAD_OPTIONS = {
   errorPages: undefined,
   tryFiles: undefined,
 
+  encrypt: false,
+
   // Large files.
   largeFileSize: TUS_CHUNK_SIZE,
   retryDelays: DEFAULT_TUS_RETRY_DELAYS,
@@ -298,3 +302,149 @@ export const DEFAULT_PIN_OPTIONS = {
   ...DEFAULT_BASE_OPTIONS,
   endpointPin: "/s5/pin",
 };
+
+export const DEFAULT_GET_ENTRY_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  endpointGetEntry: "/s5/registry",
+  hashedDataKeyHex: false,
+};
+
+export const DEFAULT_SET_ENTRY_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  endpointSetEntry: "/s5/registry",
+  hashedDataKeyHex: false,
+  deleteForever: false,  
+};
+
+/**
+ * Custom get entry options.
+ * @property [endpointGetEntry] - The relative URL path of the portal endpoint to contact.
+ * @property [hashedDataKeyHex] - Whether the data key is already hashed and in hex format. If not, we hash the data key.
+ */
+export type CustomGetEntryOptions = BaseCustomOptions & {
+  endpointGetEntry?: string;
+  hashedDataKeyHex?: boolean;
+};
+
+/**
+ * Custom set entry options.
+ * @property [endpointSetEntry] - The relative URL path of the portal endpoint to contact.
+ * @property [hashedDataKeyHex] - Whether the data key is already hashed and in hex format. If not, we hash the data key.
+ */
+export type CustomSetEntryOptions = BaseCustomOptions & {
+  endpointSetEntry?: string;
+  hashedDataKeyHex?: boolean;
+};
+
+export interface SignedRegistryEntry {
+  pk: Uint8Array;
+  revision: number;
+  data: Uint8Array;
+  signature: Uint8Array;
+}
+
+export interface SignedEntry {
+  pk: string;
+  revision: number;
+  data: string;
+  signature: string;
+}
+
+
+/**
+ * Custom get JSON options. Includes the options for get entry, to get the
+ * skylink; and download, to download the file from the skylink.
+ * @property [cachedDataLink] - The last known data link. If it hasn't changed, do not download the file contents again.
+ */
+export type CustomGetJSONOptions = CustomGetEntryOptions &
+  CustomDownloadOptions & {
+    cachedDataLink?: string;
+  };
+
+/**
+ * The default options for get JSON. Includes the default get entry and download
+ * options.
+ */
+export const DEFAULT_GET_JSON_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  ...DEFAULT_GET_ENTRY_OPTIONS,
+  ...DEFAULT_DOWNLOAD_OPTIONS,
+  cachedDataLink: undefined,
+  dbCrypto: false,
+};
+
+/**
+ * Custom set JSON options. Includes the options for upload, to get the file for
+ * the skylink; get JSON, to retrieve the revision; and set entry, to set the
+ * entry with the skylink and revision.
+ */
+export type CustomSetJSONOptions = CustomUploadOptions & CustomGetJSONOptions & CustomSetEntryOptions;
+
+/**
+ * The default options for set JSON. Includes the default upload, get JSON, and
+ * set entry options.
+ */
+export const DEFAULT_SET_JSON_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  ...DEFAULT_UPLOAD_OPTIONS,
+  ...DEFAULT_GET_JSON_OPTIONS,
+  ...DEFAULT_SET_ENTRY_OPTIONS,
+  dbCrypto: false,
+};
+
+/**
+ * Custom set entry data options. Includes the options for get and set entry.
+ */
+export type CustomSetEntryDataOptions = CustomGetEntryOptions &
+  CustomSetEntryOptions & { allowDeletionEntryData: boolean };
+
+/**
+ * The default options for set entry data. Includes the default get entry and
+ * set entry options.
+ */
+export const DEFAULT_SET_ENTRY_DATA_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  ...DEFAULT_GET_ENTRY_OPTIONS,
+  ...DEFAULT_SET_ENTRY_OPTIONS,
+  allowDeletionEntryData: false,
+};
+
+
+export const DELETION_ENTRY_DATA = new Uint8Array(0);
+
+/**
+ * Represents a JSON response object.
+ */
+export type JSONResponse = {
+  data: string | object | Uint8Array | undefined;
+  cid: string | undefined;
+};
+
+/**
+ * Represents a JSON encrypted response object.
+ */
+export type JSONEncryptedResponse = {
+  data: string | undefined;
+  cid: string | undefined;
+  key: string | undefined;
+};
+
+
+
+/**
+ * EntryData object.
+ */
+export type EntryData = {
+  data: string | undefined;
+};
+
+export const MAX_REVISION = 281474976710655;
+
+export const MAX_REVISION_DELETE = 281474976710656;
+
+export const DEFAULT_INIT_OPTIONS = {
+  ...DEFAULT_BASE_OPTIONS,
+  ...DEFAULT_UPLOAD_OPTIONS,
+  ...DEFAULT_DELETE_OPTIONS,
+};
+

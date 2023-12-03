@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_PIN_OPTIONS = exports.DEFAULT_DELETE_OPTIONS = exports.DEFAULT_UPLOAD_FROM_URL_OPTIONS = exports.DEFAULT_UPLOAD_OPTIONS = exports.DEFAULT_DIRECTORY_NAME = exports.PORTAL_DIRECTORY_FILE_FIELD_NAME = exports.PORTAL_FILE_FIELD_NAME = exports.DEFAULT_TUS_RETRY_DELAYS = exports.TUS_CHUNK_SIZE = exports.DEFAULT_GET_METADATA_OPTIONS = exports.DEFAULT_DOWNLOAD_OPTIONS = exports.DEFAULT_GET_DOWNLOAD_URLS_OPTIONS = exports.DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS = exports.DEFAULT_BASE_OPTIONS = void 0;
+exports.DEFAULT_INIT_OPTIONS = exports.MAX_REVISION_DELETE = exports.MAX_REVISION = exports.DELETION_ENTRY_DATA = exports.DEFAULT_SET_ENTRY_DATA_OPTIONS = exports.DEFAULT_SET_JSON_OPTIONS = exports.DEFAULT_GET_JSON_OPTIONS = exports.DEFAULT_SET_ENTRY_OPTIONS = exports.DEFAULT_GET_ENTRY_OPTIONS = exports.DEFAULT_PIN_OPTIONS = exports.DEFAULT_DELETE_OPTIONS = exports.DEFAULT_UPLOAD_FROM_URL_OPTIONS = exports.DEFAULT_UPLOAD_OPTIONS = exports.DEFAULT_DIRECTORY_NAME = exports.PORTAL_DIRECTORY_FILE_FIELD_NAME = exports.PORTAL_FILE_FIELD_NAME = exports.DEFAULT_TUS_RETRY_DELAYS = exports.TUS_CHUNK_SIZE = exports.DEFAULT_GET_METADATA_OPTIONS = exports.DEFAULT_DOWNLOAD_OPTIONS = exports.DEFAULT_GET_DOWNLOAD_URLS_OPTIONS = exports.DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS = exports.DEFAULT_BASE_OPTIONS = void 0;
 /**
  * The default base custom options.
  */
@@ -13,6 +13,7 @@ exports.DEFAULT_BASE_OPTIONS = {
     customCookie: "",
     onDownloadProgress: undefined,
     onUploadProgress: undefined,
+    enableDelete: undefined,
     loginFn: undefined,
 };
 exports.DEFAULT_GET_STORAGE_LOCATIONS_OPTIONS = {
@@ -69,6 +70,7 @@ exports.DEFAULT_UPLOAD_OPTIONS = {
     customDirname: "",
     errorPages: undefined,
     tryFiles: undefined,
+    encrypt: false,
     // Large files.
     largeFileSize: exports.TUS_CHUNK_SIZE,
     retryDelays: exports.DEFAULT_TUS_RETRY_DELAYS,
@@ -84,4 +86,55 @@ exports.DEFAULT_DELETE_OPTIONS = {
 exports.DEFAULT_PIN_OPTIONS = {
     ...exports.DEFAULT_BASE_OPTIONS,
     endpointPin: "/s5/pin",
+};
+exports.DEFAULT_GET_ENTRY_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    endpointGetEntry: "/s5/registry",
+    hashedDataKeyHex: false,
+};
+exports.DEFAULT_SET_ENTRY_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    endpointSetEntry: "/s5/registry",
+    hashedDataKeyHex: false,
+    deleteForever: false,
+};
+/**
+ * The default options for get JSON. Includes the default get entry and download
+ * options.
+ */
+exports.DEFAULT_GET_JSON_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    ...exports.DEFAULT_GET_ENTRY_OPTIONS,
+    ...exports.DEFAULT_DOWNLOAD_OPTIONS,
+    cachedDataLink: undefined,
+    dbCrypto: false,
+};
+/**
+ * The default options for set JSON. Includes the default upload, get JSON, and
+ * set entry options.
+ */
+exports.DEFAULT_SET_JSON_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    ...exports.DEFAULT_UPLOAD_OPTIONS,
+    ...exports.DEFAULT_GET_JSON_OPTIONS,
+    ...exports.DEFAULT_SET_ENTRY_OPTIONS,
+    dbCrypto: false,
+};
+/**
+ * The default options for set entry data. Includes the default get entry and
+ * set entry options.
+ */
+exports.DEFAULT_SET_ENTRY_DATA_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    ...exports.DEFAULT_GET_ENTRY_OPTIONS,
+    ...exports.DEFAULT_SET_ENTRY_OPTIONS,
+    allowDeletionEntryData: false,
+};
+exports.DELETION_ENTRY_DATA = new Uint8Array(0);
+exports.MAX_REVISION = 281474976710655;
+exports.MAX_REVISION_DELETE = 281474976710656;
+exports.DEFAULT_INIT_OPTIONS = {
+    ...exports.DEFAULT_BASE_OPTIONS,
+    ...exports.DEFAULT_UPLOAD_OPTIONS,
+    ...exports.DEFAULT_DELETE_OPTIONS,
 };

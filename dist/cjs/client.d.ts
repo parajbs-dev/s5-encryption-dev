@@ -1,8 +1,8 @@
 import type { AxiosResponse } from "axios";
 import { CustomClientOptions, RequestConfig } from "./defaults";
-import { getAllInfosFromCid, convertDownloadDirectoryInputCid, convertB58btcToB32rfcCid, convertS5CidToMHashB64url, convertS5CidToB3hashHex, addUrlSubdomain } from "s5-utils-js";
 import { deleteCid } from "./delete";
 import { pinCid } from "./pin";
+import { getEntryUrlForPortal, signEntry, resolverEntry } from "./registry";
 import { downloadData, downloadFile, downloadDirectory, getCidUrl, getMetadata, getStorageLocations, getDownloadUrls } from "./download";
 import { uploadFromUrl, uploadData, uploadFile, uploadLargeFile, uploadDirectory, uploadDirectoryRequest, uploadWebapp, uploadWebappRequest, uploadSmallFile, uploadSmallFileRequest, uploadLargeFileRequest } from "./upload";
 /**
@@ -10,6 +10,7 @@ import { uploadFromUrl, uploadData, uploadFile, uploadLargeFile, uploadDirectory
  */
 export declare class S5Client {
     customOptions: CustomClientOptions;
+    protected enableDel?: boolean;
     protected initialPortalUrl: string;
     protected static resolvedPortalUrl?: Promise<string>;
     protected customPortalUrl?: string;
@@ -33,13 +34,18 @@ export declare class S5Client {
     getMetadata: typeof getMetadata;
     getStorageLocations: typeof getStorageLocations;
     getDownloadUrls: typeof getDownloadUrls;
-    tools: {
-        convertB58btcToB32rfcCid: typeof convertB58btcToB32rfcCid;
-        addUrlSubdomain: typeof addUrlSubdomain;
-        convertS5CidToMHashB64url: typeof convertS5CidToMHashB64url;
-        convertDownloadDirectoryInputCid: typeof convertDownloadDirectoryInputCid;
-        getAllInfosFromCid: typeof getAllInfosFromCid;
-        convertS5CidToB3hashHex: typeof convertS5CidToB3hashHex;
+    registry: {
+        getEntry: (publicKey: string, customOptions?: import("./defaults").CustomGetEntryOptions | undefined) => Promise<import("./defaults").SignedEntry | undefined>;
+        getEntryUrl: (publicKey: string, customOptions?: import("./defaults").CustomGetEntryOptions | undefined) => Promise<string>;
+        getEntryUrlForPortal: typeof getEntryUrlForPortal;
+        setEntry: (sre: import("./defaults").SignedEntry, customOptions?: import("./defaults").CustomSetEntryOptions | undefined) => Promise<void>;
+        signEntry: typeof signEntry;
+        resolverEntry: typeof resolverEntry;
+        createResolverEntry: (privateKey: string, cid: string) => Promise<{
+            resolverCid: string;
+            publicKey: string;
+        } | undefined>;
+        createSignedEntry: (privateKey: string, entryData: string | Uint8Array) => Promise<import("./defaults").SignedEntry | undefined>;
     };
     /**
      * The S5 Client which can be used to access S5-net.
@@ -48,6 +54,16 @@ export declare class S5Client {
      * @param [customOptions] Configuration for the client.
      */
     constructor(initialPortalUrl?: string, customOptions?: CustomClientOptions);
+    /**
+     * Initializes the object asynchronously.
+     * @returns {Promise<void>} A Promise that resolves when the initialization is complete.
+     */
+    init(): Promise<void>;
+    /**
+     * Checks the endpoint for deletion.
+     * @returns {Promise<boolean>} Returns true if successful, false otherwise.
+     */
+    checkEndpointDelete(): Promise<boolean>;
     /**
      * Make the request for the API portal URL.
      * @returns - A promise that resolves when the request is complete.

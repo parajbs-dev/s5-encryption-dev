@@ -15,6 +15,7 @@ import {
   CustomUploadFromUrlOptions,
   UploadFromUrlResponse,
 } from "./defaults";
+
 import { buildRequestHeaders, buildRequestUrl } from "./request";
 
 import {
@@ -51,12 +52,10 @@ export async function uploadFromUrl(
   dataurl: string,
   customOptions?: CustomUploadFromUrlOptions
 ): Promise<UploadFromUrlResponse> {
-  // Merge the default upload options, custom options from the instance, and any provided custom options
   const opts = { ...DEFAULT_UPLOAD_FROM_URL_OPTIONS, ...this.customOptions, ...customOptions };
 
   const query: { [key: string]: string | undefined } = { url: dataurl };
 
-  // Execute the request to upload from the URL
   const response = await this.executeRequest({
     ...opts,
     endpointPath: opts.endpointUploadFromUrl,
@@ -100,9 +99,8 @@ export async function uploadData(
     throw new Error(`Unsupported data type: ${typeof data}`);
   }
 
-  const fileType = "text/plain";
-
-  const file = createFileFromData(data, filename, fileType);
+  const fileType = "application/octet-stream";
+  const file = createFileFromData(arrayBuffer, filename, fileType);
 
   if (sizeInBytes < opts.largeFileSize) {
     return await this.uploadSmallFile(file, opts);
@@ -203,8 +201,6 @@ export async function uploadSmallFileRequest(
   const cid = generateCIDFromMHash(mhash, file);
 
   let response: AxiosResponse;
-
-  // If customOptions.encrypt is true, encrypt the file before uploading.
   if (opts.encrypt) {
     // Initialize the WASM module
     await __wbg_init();
@@ -233,6 +229,7 @@ export async function uploadSmallFileRequest(
     response.data["cidWithoutKey"] = removeKeyFromEncryptedCid(encryptedCid);
   } else {
     file = ensureFileObjectConsistency(file);
+
     if (opts.customFilename) {
       formData.append(PORTAL_FILE_FIELD_NAME, file, opts.customFilename);
     } else {
@@ -297,7 +294,6 @@ export async function uploadLargeFileRequest(
   let encryptedKey: Uint8Array;
   let fileEncryptSize: number;
   
-  // Validation.
   const urlReq = await buildRequestUrl(this, { endpointPath: opts.endpointLargeUpload });
   const url = `${urlReq}${opts.authToken ? `?auth_token=${opts.authToken}` : ""}`;
   const headers = buildRequestHeaders(undefined, opts.customUserAgent, opts.customCookie, opts.s5ApiKey);
@@ -371,7 +367,6 @@ export async function uploadLargeFileRequest(
         xhr.withCredentials = true;
       },
       onError: (error: Error | DetailedError) => {
-        // Return error body rather than entire error.
         const res = (error as DetailedError).originalResponse;
         const newError = res ? new Error(res.getBody().trim()) || error : error;
         reject(newError);
@@ -395,8 +390,6 @@ export async function uploadLargeFileRequest(
       },
     };
 
-    // Creates a ReadableStream from a File object, encrypts the stream using a transformer,
-    // and returns a ReadableStreamDefaultReader for the encrypted stream.
     const reader = getEncryptedStreamReader(file, encryptedKey);
 
     let upload: Upload;

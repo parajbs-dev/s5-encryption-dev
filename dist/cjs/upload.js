@@ -15,10 +15,8 @@ const s5_encryptWasm_1 = require("s5-encryptWasm");
  * @returns A promise that resolves to the AxiosResponse object representing the upload response.
  */
 async function uploadFromUrl(dataurl, customOptions) {
-    // Merge the default upload options, custom options from the instance, and any provided custom options
     const opts = { ...defaults_1.DEFAULT_UPLOAD_FROM_URL_OPTIONS, ...this.customOptions, ...customOptions };
     const query = { url: dataurl };
-    // Execute the request to upload from the URL
     const response = await this.executeRequest({
         ...opts,
         endpointPath: opts.endpointUploadFromUrl,
@@ -56,8 +54,8 @@ async function uploadData(data, filename, customOptions) {
     else {
         throw new Error(`Unsupported data type: ${typeof data}`);
     }
-    const fileType = "text/plain";
-    const file = createFileFromData(data, filename, fileType);
+    const fileType = "application/octet-stream";
+    const file = createFileFromData(arrayBuffer, filename, fileType);
     if (sizeInBytes < opts.largeFileSize) {
         return await this.uploadSmallFile(file, opts);
     }
@@ -142,7 +140,6 @@ async function uploadSmallFileRequest(file, customOptions) {
     const mhash = (0, s5_utils_js_1.generateMHashFromB3hash)(b3hash);
     const cid = (0, s5_utils_js_1.generateCIDFromMHash)(mhash, file);
     let response;
-    // If customOptions.encrypt is true, encrypt the file before uploading.
     if (opts.encrypt) {
         // Initialize the WASM module
         await (0, s5_encryptWasm_1.__wbg_init)();
@@ -219,7 +216,6 @@ async function uploadLargeFileRequest(file, customOptions) {
     let encryptedCid;
     let encryptedKey;
     let fileEncryptSize;
-    // Validation.
     const urlReq = await (0, request_1.buildRequestUrl)(this, { endpointPath: opts.endpointLargeUpload });
     const url = `${urlReq}${opts.authToken ? `?auth_token=${opts.authToken}` : ""}`;
     const headers = (0, request_1.buildRequestHeaders)(undefined, opts.customUserAgent, opts.customCookie, opts.s5ApiKey);
@@ -276,7 +272,6 @@ async function uploadLargeFileRequest(file, customOptions) {
                 xhr.withCredentials = true;
             },
             onError: (error) => {
-                // Return error body rather than entire error.
                 const res = error.originalResponse;
                 const newError = res ? new Error(res.getBody().trim()) || error : error;
                 reject(newError);
@@ -297,8 +292,6 @@ async function uploadLargeFileRequest(file, customOptions) {
                 resolve(resolveData);
             },
         };
-        // Creates a ReadableStream from a File object, encrypts the stream using a transformer,
-        // and returns a ReadableStreamDefaultReader for the encrypted stream.
         const reader = (0, s5_encryptWasm_1.getEncryptedStreamReader)(file, encryptedKey);
         let upload;
         if (opts.encrypt)
